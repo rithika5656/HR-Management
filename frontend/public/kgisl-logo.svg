@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 80">
+  <!-- Book/Page graphic element -->
+  <g transform="translate(5, 10)">
+    <!-- Blue page -->
+    <path d="M45 15 L65 5 L65 45 L45 55 Z" fill="#1a1f4e"/>
+    <!-- Red/Orange page -->
+    <path d="M45 15 L25 5 L25 45 L45 55 Z" fill="#dc2626"/>
+    <!-- White inner pages -->
+    <path d="M45 18 L60 10 L60 42 L45 50 Z" fill="#e8e8e8"/>
+    <path d="M45 18 L30 10 L30 42 L45 50 Z" fill="#f5f5f5"/>
+  </g>
+  
+  <!-- KITE Text -->
+  <text x="75" y="42" font-family="Georgia, serif" font-size="38" font-weight="bold" fill="#1a1f4e">K</text>
+  <text x="100" y="42" font-family="Georgia, serif" font-size="38" font-weight="bold" font-style="italic" fill="#1a1f4e">i</text>
+  <text x="115" y="42" font-family="Georgia, serif" font-size="38" font-weight="bold" fill="#1a1f4e">T</text>
+  <text x="140" y="42" font-family="Georgia, serif" font-size="38" font-weight="bold" fill="#1a1f4e">E</text>
+  
+  <!-- Orange and blue accent lines -->
+  <rect x="165" y="22" width="25" height="6" rx="1" fill="#f97316" transform="skewX(-10)"/>
+  <rect x="163" y="30" width="20" height="4" rx="1" fill="#1a1f4e" transform="skewX(-10)"/>
+  
+  <!-- KGISL INSTITUTE OF TECHNOLOGY text -->
+  <text x="75" y="56" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#1a1f4e" letter-spacing="0.5">KGISL INSTITUTE OF TECHNOLOGY</text>
+  
+  <!-- Tagline -->
+  <text x="75" y="68" font-family="Arial, sans-serif" font-size="8" fill="#666" font-style="italic">co-Kreate your Genius</text>
+</svg>
