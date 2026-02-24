@@ -58,16 +58,38 @@ async def create_job(job: JobCreate):
 
 
 @router.get("/", response_model=List[JobResponse])
-async def get_all_jobs():
+async def get_all_jobs(status_filter: str = None):
     """
     Get all job postings.
+    
+    - **status_filter**: Optional filter by status (Open, Closed, On Hold)
     
     Returns a list of all jobs (both for HR management and candidate viewing).
     """
     db = get_database()
     jobs = []
     
-    async for job in db.jobs.find().sort("created_at", -1):
+    query = {}
+    if status_filter:
+        query["status"] = status_filter
+    
+    async for job in db.jobs.find(query).sort("created_at", -1):
+        jobs.append(job_helper(job))
+    
+    return jobs
+
+
+@router.get("/open", response_model=List[JobResponse])
+async def get_open_jobs():
+    """
+    Get only open job postings (public endpoint for candidates).
+    
+    Returns a list of jobs with status "Open".
+    """
+    db = get_database()
+    jobs = []
+    
+    async for job in db.jobs.find({"status": "Open"}).sort("created_at", -1):
         jobs.append(job_helper(job))
     
     return jobs

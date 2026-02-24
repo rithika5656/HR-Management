@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 from typing import List
 from fastapi import APIRouter, HTTPException, status, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from bson import ObjectId
 
 from app.database import get_database
@@ -12,7 +13,7 @@ from app.models.candidate import CandidateStatus, CandidateStatusUpdate, Candida
 router = APIRouter(tags=["Candidates"])
 
 # Directory for storing uploaded resumes
-UPLOAD_DIR = "uploads/resumes"
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads", "resumes")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Allowed file extensions for resume upload
@@ -250,3 +251,91 @@ async def get_candidate(candidate_id: str):
         )
     
     return candidate_helper(candidate)
+
+
+@router.get("/resume/{candidate_id}")
+async def download_resume(candidate_id: str):
+    """
+    Download a candidate's resume (HR only).
+    
+    - **candidate_id**: The unique candidate identifier
+    
+    Returns the resume file for download.
+    """
+    db = get_database()
+    
+    if not ObjectId.is_valid(candidate_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid candidate ID format"
+        )
+    
+    candidate = await db.candidates.find_one({"_id": ObjectId(candidate_id)})
+    
+    if not candidate:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Candidate not found"
+        )
+    
+    resume_path = candidate.get("resume_path")
+    if not resume_path or not os.path.exists(resume_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Resume file not found"
+        )
+    
+    return FileResponse(
+        path=resume_path,
+        filename=candidate.get("resume_filename", "resume.pdf"),
+        media_type="application/octet-stream"
+    )
+
+
+@router.get("/dashboard/stats")
+async def get_dashboard_stats():
+    """
+    Get dashboard statistics for HR.
+    
+    Returns:
+    - Total jobs count
+    - Open jobs count
+    - Closed jobs count
+    - Total candidates count
+    - Candidates by status breakdown
+    """
+    db = get_database()
+    
+    # Count jobs
+    total_jobs = await db.jobs.count_documents({})
+    open_jobs = await db.jobs.count_documents({"status": "Open"})
+    closed_jobs = await db.jobs.count_documents({"status": "Closed"})
+    on_hold_jobs = await db.jobs.count_documents({"status": "On Hold"})
+    
+    # Count candidates
+    total_candidates = await db.candidates.count_documents({})
+    applied_count = await db.candidates.count_documents({"status": "Applied"})
+    shortlisted_count = await db.candidates.count_documents({"status": "Shortlisted"})
+    interview_count = await db.candidates.count_documents({"status": "Interview"})
+    selected_count = await db.candidates.count_documents({"status": "Selected"})
+    rejected_count = await db.candidates.count_documents({"status": "Rejected"})
+    
+    return {
+        "jobs": {
+            "total": total_jobs,
+            "open": open_jobs,
+            "closed": closed_jobs,
+            "on_hold": on_hold_jobs
+        },
+        "candidates": {
+            "total": total_candidates,
+            "by_status": {
+                "applied": applied_count,
+                "shortlisted": shortlisted_count,
+                "interview": interview_count,
+                "selected": selected_count,
+                "rejected": rejected_count
+            }
+        }
+    }
+

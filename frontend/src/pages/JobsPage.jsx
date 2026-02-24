@@ -8,13 +8,14 @@ function JobsPage() {
   const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterDepartment, setFilterDepartment] = useState('')
+  const [showOnlyOpen, setShowOnlyOpen] = useState(true)
 
-  useEffect(() => { fetchJobs() }, [])
+  useEffect(() => { fetchJobs() }, [showOnlyOpen])
 
   const fetchJobs = async () => {
     try {
       setLoading(true)
-      const response = await jobApi.getAll()
+      const response = showOnlyOpen ? await jobApi.getOpen() : await jobApi.getAll()
       setJobs(response.data)
     } catch (err) {
       setError('Failed to load jobs')
@@ -45,6 +46,10 @@ function JobsPage() {
             <option value="">All Departments</option>
             {departments.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
           </select>
+          <label className="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" checked={showOnlyOpen} onChange={(e) => setShowOnlyOpen(e.target.checked)} className="w-4 h-4 text-kite-blue border-gray-300 rounded focus:ring-kite-blue" />
+            <span className="text-sm text-gray-700">Open positions only</span>
+          </label>
         </div>
       </div>
       <p className="text-gray-600 mb-4">Showing {filteredJobs.length} of {jobs.length} jobs</p>

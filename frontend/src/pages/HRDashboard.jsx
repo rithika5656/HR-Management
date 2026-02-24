@@ -6,6 +6,7 @@ import JobCard from '../components/JobCard'
 function HRDashboard() {
   const [jobs, setJobs] = useState([])
   const [candidates, setCandidates] = useState([])
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -14,9 +15,14 @@ function HRDashboard() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [jobsResponse, candidatesResponse] = await Promise.all([jobApi.getAll(), candidateApi.getAll()])
+      const [jobsResponse, candidatesResponse, statsResponse] = await Promise.all([
+        jobApi.getAll(), 
+        candidateApi.getAll(),
+        candidateApi.getDashboardStats()
+      ])
       setJobs(jobsResponse.data)
       setCandidates(candidatesResponse.data)
+      setStats(statsResponse.data)
     } catch (err) {
       setError('Failed to load data')
     } finally {
@@ -27,9 +33,11 @@ function HRDashboard() {
   if (loading) return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div></div>
   if (error) return <div className="text-center py-12"><p className="text-red-600">{error}</p><button onClick={fetchData} className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md">Retry</button></div>
 
-  const openJobs = jobs.filter((j) => j.status === 'Open').length
-  const selectedCandidates = candidates.filter((c) => c.status === 'Selected').length
-  const interviewCandidates = candidates.filter((c) => c.status === 'Interview').length
+  const openJobs = stats?.jobs?.open || jobs.filter((j) => j.status === 'Open').length
+  const totalJobs = stats?.jobs?.total || jobs.length
+  const totalCandidates = stats?.candidates?.total || candidates.length
+  const selectedCandidates = stats?.candidates?.by_status?.selected || candidates.filter((c) => c.status === 'Selected').length
+  const interviewCandidates = stats?.candidates?.by_status?.interview || candidates.filter((c) => c.status === 'Interview').length
 
   return (
     <div>
@@ -40,10 +48,11 @@ function HRDashboard() {
         </div>
         <Link to="/jobs/create" className="px-6 py-3 bg-kite-blue text-white rounded-md font-medium hover:bg-primary-700 shadow-lg">+ Post New Job</Link>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-kite-blue"><p className="text-sm text-gray-500">Total Jobs</p><p className="text-2xl font-bold text-kite-blue">{jobs.length}</p></div>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-kite-blue"><p className="text-sm text-gray-500">Total Jobs</p><p className="text-2xl font-bold text-kite-blue">{totalJobs}</p></div>
         <div className="bg-green-50 rounded-lg shadow-md p-4 border-l-4 border-green-500"><p className="text-sm text-green-600">Open Jobs</p><p className="text-2xl font-bold text-green-700">{openJobs}</p></div>
-        <div className="bg-kite-light rounded-lg shadow-md p-4 border-l-4 border-kite-blue"><p className="text-sm text-kite-blue">Total Candidates</p><p className="text-2xl font-bold text-kite-blue">{candidates.length}</p></div>
+        <div className="bg-kite-light rounded-lg shadow-md p-4 border-l-4 border-kite-blue"><p className="text-sm text-kite-blue">Total Candidates</p><p className="text-2xl font-bold text-kite-blue">{totalCandidates}</p></div>
+        <div className="bg-purple-50 rounded-lg shadow-md p-4 border-l-4 border-purple-500"><p className="text-sm text-purple-600">In Interview</p><p className="text-2xl font-bold text-purple-700">{interviewCandidates}</p></div>
         <div className="bg-emerald-50 rounded-lg shadow-md p-4 border-l-4 border-emerald-500"><p className="text-sm text-emerald-600">Selected</p><p className="text-2xl font-bold text-emerald-700">{selectedCandidates}</p></div>
       </div>
       <div className="bg-white rounded-lg shadow-md p-6 mb-8 border-t-4 border-kite-blue">

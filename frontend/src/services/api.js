@@ -11,7 +11,11 @@ const api = axios.create({
 
 // Job APIs
 export const jobApi = {
-  getAll: () => api.get('/jobs/'),
+  getAll: (statusFilter = null) => {
+    const params = statusFilter ? { status_filter: statusFilter } : {}
+    return api.get('/jobs/', { params })
+  },
+  getOpen: () => api.get('/jobs/open'),
   getById: (id) => api.get(`/jobs/${id}`),
   create: (jobData) => api.post('/jobs/', jobData),
   update: (id, jobData) => api.put(`/jobs/${id}`, jobData),
@@ -28,6 +32,9 @@ export const candidateApi = {
   getById: (id) => api.get(`/candidate/${id}`),
   updateStatus: (candidateId, status) => 
     api.put(`/candidate/status/${candidateId}`, { status }),
+  downloadResume: (candidateId) => 
+    `${API_BASE_URL}/resume/${candidateId}`,
+  getDashboardStats: () => api.get('/dashboard/stats'),
 }
 
 export default api
